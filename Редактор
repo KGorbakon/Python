@@ -1,0 +1,28 @@
+from PIL import Image
+
+paris_image = Image.open("paris.jpg")
+pixels = paris_image.load()
+
+width = paris_image.width
+height = paris_image.height
+
+if input("mode:") == 1:
+    x = int(input("Увеличить яркость на "))
+    for i in range(width):
+        for j in range(height):
+            r, g, b = pixels[i,j]
+            g = min(g + x,255)
+            r = min(r + x,255)
+            b = min(b + x,255)
+            pixels[i,j] = (r, g, b)
+else:
+    y = int(input("Уменьшить яркость на "))
+    for i in range(width):
+        for j in range(height):
+            r, g, b = pixels[i,j]
+            g = max(g - y,0)
+            r = max(r - y,0)
+            b = max(b - y,0)
+            pixels[i,j] = (r, g, b)
+
+paris_image.show()
