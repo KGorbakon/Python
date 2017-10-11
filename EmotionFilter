@@ -1,0 +1,88 @@
+from PIL import Image
+import requests
+
+people_image = Image.open("people.jpg")
+happiness_image = Image.open("happiness.jpg")
+contempt_image = Image.open("contempt.jpg")
+anger_image = Image.open("anger.jpg")
+disgust_image = Image.open("disgust.png")
+fear_image = Image.open("fear.jpg")
+neutral_image = Image.open("neutral.png")
+sadness_image = Image.open("sadness.jpg")
+pixels = people_image.load()
+
+url = "https://westus.api.cognitive.microsoft.com/emotion/v1.0/recognize"
+
+header = {
+    "Content-Type": "application/octet-stream",
+    "Ocp-Apim-Subscription-Key": "4f2ad86f11724c5287d94a2efb2731c6"
+}
+
+image = open('people.jpg', 'rb').read()
+
+result = requests.post(url, headers=header, data=image)
+
+faces = result.json()
+
+for face in faces:
+    print('--- '*10)
+    print("x - ", face['faceRectangle']['left'])
+    print("y - ", face['faceRectangle']['top'])
+    print("w - ", face['faceRectangle']['width'])
+    print("h - ", face['faceRectangle']['height'])
+
+    print ("--- "*10)
+    print ("anger - ", face['scores']['anger'])
+    print ("contempt - ", face['scores']['contempt'])
+    print ("disgust - ", face['scores']['disgust'])
+    print ("fear - ", face['scores']['fear'])
+    print ("happiness - ", face['scores']['happiness'])
+    print ("neutral - ", face['scores']['neutral'])
+    print ("sadness - ", face['scores']['sadness'])
+
+
+    max_scores = (face['scores']['anger'])
+    if (face['scores']['contempt']) > max_scores:
+        max_scores = (face['scores']['contempt'])
+    if (face['scores']['disgust']) > max_scores:
+        max_scores = (face['scores']['disgust'])
+    if (face['scores']['fear']) > max_scores:
+        max_scores = (face['scores']['fear'])
+    if (face['scores']['happiness']) > max_scores:
+        max_scores = (face['scores']['happiness'])
+    if (face['scores']['neutral']) > max_scores:
+        max_scores = (face['scores']['neutral'])
+    if (face['scores']['sadness']) > max_scores:
+        max_scores = (face['scores']['sadness'])
+    print (max_scores)
+
+    if max_scores == face['scores']['contempt']:
+        contempt_image = contempt_image.resize((face['faceRectangle']['width'], face['faceRectangle']['height']))
+        people_image.paste(contempt_image, (face['faceRectangle']['left'], face['faceRectangle']['top']))
+
+    if max_scores == face['scores']['anger']:
+        anger_image = anger_image.resize((face['faceRectangle']['width'], face['faceRectangle']['height']))
+        people_image.paste(anger_image, (face['faceRectangle']['left'], face['faceRectangle']['top']))
+
+    if max_scores == face['scores']['disgust']:
+        disgust_image = disgust_image.resize((face['faceRectangle']['width'], face['faceRectangle']['height']))
+        people_image.paste(disgust_image, (face['faceRectangle']['left'], face['faceRectangle']['top']))
+
+    if max_scores == face['scores']['fear']:
+        fear_image = fear_image.resize((face['faceRectangle']['width'], face['faceRectangle']['height']))
+        people_image.paste(fear_image, (face['faceRectangle']['left'], face['faceRectangle']['top']))
+
+    if max_scores == face['scores']['happiness']:
+        happiness_image = happiness_image.resize((face['faceRectangle']['width'], face['faceRectangle']['height']))
+        people_image.paste(happiness_image, (face['faceRectangle']['left'], face['faceRectangle']['top']))
+
+    if max_scores == face['scores']['neutral']:
+        neutral_image = neutral_image.resize((face['faceRectangle']['width'], face['faceRectangle']['height']))
+        people_image.paste(neutral_image, (face['faceRectangle']['left'], face['faceRectangle']['top']))
+
+    if max_scores == face['scores']['sadness']:
+        sadness_image = sadness_image.resize((face['faceRectangle']['width'], face['faceRectangle']['height']))
+        people_image.paste(sadness_image, (face['faceRectangle']['left'], face['faceRectangle']['top']))
+                           
+
+people_image.show()
