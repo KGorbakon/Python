@@ -1,0 +1,63 @@
+import random
+
+import telebot
+
+token = "506087263:AAGxfaex7jRqeki4PhjtRZLYcMdZsWT7AZI"
+
+bot = telebot.TeleBot(token=token)
+
+@bot.message_handler(commands=['start'])
+
+def start(message):
+    user = message.chat.id
+    bot.send_message(user, "Я попугай")
+
+
+@bot.message_handler(commands=['help'])
+
+def help(message):
+    user = message.chat.id
+    bot.send_message(user, "Кто вообще пишет /help ?")
+
+@bot.message_handler(commands=['anek'])
+def anek(message):
+    user = message.chat.id
+
+    aneks = [
+        "Французское правительство возмущено,"
+        "что русские присвоили себе победу в Отечественной Войне 1812 года.- Без фра"
+        "нцузской армии,"
+        " - говорят французы,\n- никакой победы не было бы.",
+        "По студенчеству снимали с друганом квартирку. "
+        "Я подрабатывал ночным сторожем. В один из вечеров пошёл на смену, "
+        "и выйдя из подъезда вспомнил - забыл рабочую обувь (тапочки). Звоню друг"
+        "ану, мол, скинь тапочки с балкона, я во дворе поймаю. А время было часо"
+        "в 7-8 вечера, во дворе народу полно (лето), бабульки, ребятня, мамочки с"
+        " колясками. На что этот балбес вышел на балкон, закричав: \"уходи, между"
+        "нами всё кончено!!!\" … (двор мгновенно притих) и со словами: \"и вещи св" \
+                           "ои забирай\" скинул тапочки..."
+    ]
+
+    bot.send_message(user, random.choice(aneks))
+
+@bot.message_handler(commands=['mem'])
+def mem(message):
+    user = message.chat.id
+
+    mems = [
+        "https://hs-standart.ru/gallery/memes/memes-hearthstone-36-topdecnul.jpg",
+        "https://rpglib.ru/img/meme/upload/6b217287f47844e68f535d5d80cca888.jpg"
+    ]
+
+    bot.send_message(user, random.choice(mems))
+
+@bot.message_handler(content_types=['text'])
+def echo(message):
+
+    text = message.text
+    user = message.chat.id
+
+    bot.send_photo(user, "https://i.ytimg.com/vi/R-RbmqzRC9c/maxresdefault.jpg")
+    bot.send_message(user, text)
+
+bot.polling(none_stop=True)
