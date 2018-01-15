@@ -1,0 +1,42 @@
+from tkinter import *
+import random
+
+tk = Tk()
+c = Canvas(tk, width=1280, height=1280, bg='white')
+c.pack()
+
+shariki = []
+for i in range(500):
+    korX = random.randint(0, 1230)
+    korY = random.randint(0, 1230)
+    new_ball = c.create_oval(korX, korY, korX+50, korY+50, fill="#"+("%06x"%random.randint(0,16777215)))
+    shariki.append(new_ball)
+
+poX = []
+for i in range(500):
+    vx = random.randint(5, 50)
+    poX.append(vx)
+poY = []
+for i in range(500):
+    vy = random.randint(5, 50)
+    poY.append(vy)
+def moveBall():
+    global poX, poY
+
+    for i in range(500):
+
+        x1, y1, x2, y2 = c.coords(shariki[i])
+
+        if x1 <= 0 or x2 >= 1280:
+            poX[i] *= -1
+
+        if y1 <= 0 or y2 >= 1280:
+            poY[i] *= -1
+
+
+        c.move(shariki[i], poX[i], poY[i])
+    c.after(50, moveBall)
+
+c.after(50, moveBall)
+
+mainloop()
