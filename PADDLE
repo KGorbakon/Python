@@ -1,0 +1,46 @@
+from tkinter import *
+
+tk = Tk()
+c = Canvas(tk, width=640, height=640, bg='white')
+c.pack()
+
+my_rect = c.create_rectangle(130, 630, 230, 640, fill='blue')
+
+def keyDown(key):
+    x1, y1, x2, y2 = c.coords(my_rect)
+    if key.char == 'a':
+        if x1 > 0:
+            c.move(my_rect, -10, 0)
+    if key.char == 'd':
+        if x2 < 640:
+            c.move(my_rect, 10, 0)
+
+tk.bind("<KeyPress>", keyDown)
+
+my_favorite_oval = c.create_oval(10, 10, 50, 50, fill='red')
+vx = 10
+vy = 15
+def moveBall():
+    global vx, vy
+    x3, y3, x4, y4 = c.coords(my_favorite_oval)
+    x1, y1, x2, y2 = c.coords(my_rect)
+    if x3 <= 0 or x4 >= 640:
+        vx *= -1
+    if y3 <= 0:
+        vy *= -1
+    if y4 > 640:
+        if (x3+x4)/2 > x1 and (x3+x4)/2 < x2:
+            vy *= -1
+            print("+1")
+            c.move(my_favorite_oval, vx, vy)
+            c.after(50, moveBall)
+        else:
+            tk.destroy()
+    else:
+        c.move(my_favorite_oval, vx, vy)
+        c.after(50, moveBall)
+c.after(50, moveBall)
+
+
+
+mainloop()
