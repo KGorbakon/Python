@@ -1,5 +1,7 @@
+import functools
 from tkinter import Tk, Canvas, mainloop, NW
 from PIL import Image, ImageTk
+import time
 
 # размер карты в пикселях
 window_width = 600
@@ -44,22 +46,34 @@ for i in range(12):
 
 # картинка с игроком
 player_image_up = ImageTk.PhotoImage(
-    (Image.open("images/player.png").convert('RGBA').resize((block_width, block_height)).rotate(270)))
+    (Image.open("images/tank.gif").convert('RGBA').resize((block_width, block_height))))
 player_image_left = ImageTk.PhotoImage(
-    (Image.open("images/player.png").convert('RGBA').resize((block_width, block_height))))
+    (Image.open("images/tank.gif").convert('RGBA').resize((block_width, block_height)).rotate(90)))
 player_image_down = ImageTk.PhotoImage(
-    (Image.open("images/player.png").convert('RGBA').resize((block_width, block_height)).rotate(90)))
+    (Image.open("images/tank.gif").convert('RGBA').resize((block_width, block_height)).rotate(180)))
 player_image_right = ImageTk.PhotoImage(
-    (Image.open("images/player.png").convert('RGBA').resize((block_width, block_height)).rotate(180)))
+    (Image.open("images/tank.gif").convert('RGBA').resize((block_width, block_height)).rotate(270)))
 
 bullet_image_up = ImageTk.PhotoImage(
-    (Image.open("images/bullet.png").convert('RGBA').resize((block_width, block_height)).rotate(270)))
+    (Image.open("images/bullet.gif").convert('RGBA').resize((block_width, block_height))))
 bullet_image_left = ImageTk.PhotoImage(
-    (Image.open("images/bullet.png").convert('RGBA').resize((block_width, block_height))))
+    (Image.open("images/bullet.gif").convert('RGBA').resize((block_width, block_height)).rotate(90)))
 bullet_image_down = ImageTk.PhotoImage(
-    (Image.open("images/bullet.png").convert('RGBA').resize((block_width, block_height)).rotate(90)))
+    (Image.open("images/bullet.gif").convert('RGBA').resize((block_width, block_height)).rotate(180)))
 bullet_image_right = ImageTk.PhotoImage(
-    (Image.open("images/bullet.png").convert('RGBA').resize((block_width, block_height)).rotate(180)))
+    (Image.open("images/bullet.gif").convert('RGBA').resize((block_width, block_height)).rotate(270)))
+
+boom_image_up = ImageTk.PhotoImage(
+    (Image.open("images/boom.png").convert('RGBA').resize((block_width, block_height))))
+boom_image_left = ImageTk.PhotoImage(
+    (Image.open("images/boom.png").convert('RGBA').resize((block_width, block_height)).rotate(90)))
+boom_image_down = ImageTk.PhotoImage(
+    (Image.open("images/boom.png").convert('RGBA').resize((block_width, block_height)).rotate(180)))
+boom_image_right = ImageTk.PhotoImage(
+    (Image.open("images/boom.png").convert('RGBA').resize((block_width, block_height)).rotate(270)))
+
+boom2_image = ImageTk.PhotoImage(
+    (Image.open("images/boom2.png").convert('RGBA').resize((block_width, block_height))))
 
 # координаты игрока
 x = 6
@@ -87,26 +101,31 @@ def is_available(i, j):
 
 
 bullets = []
-
+fires = []
 
 def moveBullets():
     global bullets
+
+    for fire in fires:
+        if fire["time"] - time.time() <= -0.25:
+            fires.remove(fire)
+            c.delete(fire["object"])
+
     aliveBullets = []
+
+    player_x, player_y = c.coords(player_left)
+    player_mx, player_my = int(player_x // block_width), int(player_y // block_height)
+
     for bullet in bullets:
         x, y = c.coords(bullet['object'])
         mx, my = int(x // block_width), int(y // block_height)
-        if mx < 0 or my < 0 or mx>=12 or my >=12:
-            c.delete(bullet['object'])
-            continue
-        if game_map[mx][my] == 1 and bullet['side'] in ['LEFT', 'UP']:
-            c.delete(bullet['object'])
-            continue
-        if game_map[mx][my+1] == 1 and bullet['side'] == 'DOWN':
-            c.delete(bullet['object'])
-            continue
-        if game_map[mx+1][my] == 1 and bullet['side'] == 'RIGHT':
-            c.delete(bullet['object'])
-            continue
+
+        if (mx, my) == (player_mx, player_my):
+            boom2 = c.create_image(mx * block_width, my * block_height, image=boom2_image, anchor=NW)
+            fires.append({
+                "object": boom2,
+                "time": time.time()
+            })
         if bullet['side'] == 'LEFT':
             c.move(bullet['object'], -10, 0)
         if bullet['side'] == 'RIGHT':
@@ -115,9 +134,26 @@ def moveBullets():
             c.move(bullet['object'], 0, -10)
         if bullet['side'] == 'DOWN':
             c.move(bullet['object'], 0, 10)
+        if not is_available(mx, my) or (bullet['side']=='RIGHT' and not is_available(mx+1, my))or (bullet['side']=='DOWN' and not is_available(mx, my+1)):
+            if bullet['side'] == 'DOWN' and not is_available(mx, my+1):
+                boom = c.create_image(mx * block_width, my * block_height, image=boom_image_up, anchor=NW)
+            if bullet['side'] == 'LEFT' and not is_available(mx, my):
+                boom = c.create_image((mx+1) * block_width, my * block_height, image=boom_image_left, anchor=NW)
+            if bullet['side'] == 'UP' and not is_available(mx, my):
+                boom = c.create_image(mx * block_width, (my+1) * block_height, image=boom_image_up, anchor=NW)
+            if bullet['side'] == 'RIGHT' and not is_available(mx+1, my):
+                boom = c.create_image(mx * block_width, my * block_height, image=boom_image_right, anchor=NW)
+
+            fires.append({
+                "object": boom,
+                "time": time.time()
+            })
+            c.delete(bullet['object'])
+            continue
         aliveBullets.append(bullet)
     bullets = aliveBullets
     c.after(50, moveBullets)
+
 
 
 naprav = 'a'
@@ -161,25 +197,25 @@ def keyDown(key):
     if key.char == ' ':
         if naprav == 'a':
             bullet = {
-                "object": c.create_image(x * block_width, y * block_height, image=bullet_image_left, anchor=NW),
+                "object": c.create_image(x * block_width - block_width, y * block_height, image=bullet_image_left, anchor=NW),
                 "side": "LEFT"
             }
             bullets.append(bullet)
         if naprav == 'd':
             bullet = {
-                "object": c.create_image(x * block_width, y * block_height, image=bullet_image_right, anchor=NW),
+                "object": c.create_image(x * block_width + block_width, y * block_height, image=bullet_image_right, anchor=NW),
                 "side": "RIGHT"
             }
             bullets.append(bullet)
         if naprav == 'w':
             bullet = {
-                "object": c.create_image(x * block_width, y * block_height, image=bullet_image_up, anchor=NW),
+                "object": c.create_image(x * block_width, y * block_height - block_height, image=bullet_image_up, anchor=NW),
                 "side": "UP"
             }
             bullets.append(bullet)
         if naprav == 's':
             bullet = {
-                "object": c.create_image(x * block_width, y * block_height, image=bullet_image_down, anchor=NW),
+                "object": c.create_image(x * block_width, y * block_height + block_height, image=bullet_image_down, anchor=NW),
                 "side": "DOWN"
             }
             bullets.append(bullet)
